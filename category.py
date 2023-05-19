@@ -4,6 +4,8 @@ from typing import Any
 Progress:
 - Implement basic category and morphisms, where a category is an object `catA = Cat(A)`
 - Change category code to superclass, now a category is any class `A(Category)` that extends `Category`
+- Implement identity as a special morphism
+- Add support for singleton category, use sets instead of lists for obC and morC
 """
 
 class MorphismDomainError(Exception):
@@ -22,24 +24,28 @@ class Morphism:
         - `domain` and `codomain` must be instances `category`
         - `category` msut be a subclass of `Category`
         """
-        if type(domain) == category and type(codomain) == category:
-            try:
-                category.morphisms
-            except AttributeError:
-                category.morphisms = []
-            self.category = category
-            self.name = f'{category.__name__}_mor{len(category.morphisms)}' \
-                        if name is None else name
-            category.morphisms.append(self)
-            self.domain = domain
-            self.codomain = codomain
-        else:
+        if type(domain) != category or type(codomain) != category:
             raise MorphismCategoryError(
                 f"Morphism's domain & codomain must be instances of the category {category.name}")
+        self.category = category
+        self.domain = domain
+        self.codomain = codomain
+        # Morphism class is responsible for keeping a list in the category class for naming
+        if not hasattr(category, 'morphisms'):
+            category.morphisms = set()
+        self.name = f'{category.__name__}_mor{len(category.morphisms)}' \
+                    if name is None else name
+        category.morphisms.add(self)
         return
     
     def __repr__(self) -> str:
         return f'{self.name}: {self.domain} -> {self.codomain} @{object.__repr__(self)}'
+    
+    def composeWith(self, another):
+        pass
+
+    def __matmul__(self, another):
+        return self.composeWith(another)
 
 class Category:
     def __init__(self):
@@ -54,10 +60,9 @@ class Category:
     @classmethod
     def anyObject(cls):
         newObject = cls()
-        try:
-            cls.objects.append(newObject)
-        except AttributeError:
-            cls.objects = [newObject]
+        if not hasattr(cls, 'objects'):
+            cls.objects = set()
+        cls.objects.add(newObject)
         return newObject
 
     @classmethod    
@@ -77,12 +82,10 @@ class SerialNamedType:
 
     def __init__(self):
         cls = self.__class__
-        try:
-            objects = cls.namedObjects
-        except AttributeError:
-            objects = cls.namedObjects = []
-        self.name = f'{cls.__name__}{len(objects)}'
-        objects.append(self)
+        if not hasattr(cls, 'namedObjects'):
+            cls.namedObjects = []
+        self.name = f'{cls.__name__}{len(cls.namedObjects)}'
+        cls.namedObjects.append(self)
 
         # def _serialName(cls, obj):  
         #     obj.name = f'{cls.__name__}{len(cls.objects)}'
@@ -102,6 +105,16 @@ class B(Category, SerialNamedType):
         SerialNamedType.__init__(self)
         Category.__init__(self)
 
+class Point(Category):
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(Point, cls).__new__(cls)
+        return cls.instance
+    
+    def __init__(self):
+        print('Point init')
+        super().__init__()
+
 def try_execute(f, x):
     try:
         return f(x)
@@ -113,6 +126,10 @@ a1 = A.anyObject()
 f = A.anyMorphism(a0, a1)
 g = A.anyMorphism(a0, a1)
 print(a0, a1, f, g, a0.identity, a1.identity, sep='\n')
+
+p0 = Point.anyObject()
+p1 = Point.anyObject()
+print(p0, p1, Point.objects)
 
 # catA = CategoryOf(A)
 # a1 = catA.anyObject()

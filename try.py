@@ -12,8 +12,7 @@ class Parent:
 
 
 class Child(Parent):
+    obs = []
     pass
 
-# print(Child.morphs)
-print(Child.f())
-print(Child.morphs)
+print(hasattr(Child(), 'obs'))
