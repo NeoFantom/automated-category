@@ -16,3 +16,13 @@ class Child(Parent):
     pass
 
 print(hasattr(Child(), 'obs'))
+
+class A:
+    pass
+
+def f():
+    if f.obj is None:
+        f.obj = A()
+    return f.obj
+
+f.obj = None

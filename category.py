@@ -6,6 +6,7 @@ Progress:
 - Change category code to superclass, now a category is any class `A(Category)` that extends `Category`
 - Implement identity as a special morphism
 - Add support for singleton category, use sets instead of lists for obC and morC
+* Use factory method, do not mess with __new__()
 """
 
 class MorphismDomainError(Exception):
