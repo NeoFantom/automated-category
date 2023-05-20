@@ -1,6 +1,3 @@
-x = y = 3
-print(x, y)
-
 class Parent:
     @classmethod
     def f(cls):
@@ -8,21 +5,22 @@ class Parent:
             cls.morphs
         except:
             cls.morphs = []
+        print(cls.__name__)
+        print(cls.f)
     
 
 
 class Child(Parent):
     obs = []
-    pass
+    
+    def __init__(self, play) -> None:
+        super().__init__()
+        self.play = play
+    def bark(self):
+        print('walf walf')
 
-print(hasattr(Child(), 'obs'))
-
-class A:
-    pass
-
-def f():
-    if f.obj is None:
-        f.obj = A()
-    return f.obj
-
-f.obj = None
+c = Parent()
+c.__class__ = Child
+c.bark()
+c.__init__(23)
+print(c.play)

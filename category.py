@@ -59,8 +59,12 @@ class Category:
         self.morphismsFrom = {self: {id}}
 
     @classmethod
+    def _newInstance(cls):
+        return cls()
+
+    @classmethod
     def anyObject(cls):
-        newObject = cls()
+        newObject = cls._newInstance()
         if not hasattr(cls, 'objects'):
             cls.objects = set()
         cls.objects.add(newObject)
@@ -84,14 +88,9 @@ class SerialNamedType:
     def __init__(self):
         cls = self.__class__
         if not hasattr(cls, 'namedObjects'):
-            cls.namedObjects = []
-        self.name = f'{cls.__name__}{len(cls.namedObjects)}'
-        cls.namedObjects.append(self)
-
-        # def _serialName(cls, obj):  
-        #     obj.name = f'{cls.__name__}{len(cls.objects)}'
-        #     cls.objects.append(obj)
-        # _serialName(self.__class__, self)
+            cls.instanceCount = 0
+        self.name = f'{cls.__name__}{cls.instanceCount}'
+        cls.instanceCount += 1
        
     def __repr__(self):
         return self.name
@@ -107,9 +106,10 @@ class B(Category, SerialNamedType):
         Category.__init__(self)
 
 class Point(Category):
-    def __new__(cls):
+    @classmethod
+    def _newInstance(cls):
         if not hasattr(cls, 'instance'):
-            cls.instance = super(Point, cls).__new__(cls)
+            cls.instance = cls()
         return cls.instance
     
     def __init__(self):
