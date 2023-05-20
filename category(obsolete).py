@@ -9,13 +9,7 @@ Progress:
 * Use factory method, do not mess with __new__()
 """
 
-class MorphismDomainError(Exception):
-    pass
-
 class MorphismCategoryError(Exception):
-    pass
-
-class MorphismUndefinedError(Exception):
     pass
 
 class Morphism:
