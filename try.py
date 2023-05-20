@@ -19,8 +19,5 @@ class Child(Parent):
     def bark(self):
         print('walf walf')
 
-c = Parent()
-c.__class__ = Child
-c.bark()
-c.__init__(23)
-print(c.play)
+d = {1:2, 2:3}
+print(3 in d)

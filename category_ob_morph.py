@@ -17,9 +17,10 @@ class MorphismCategoryError(Exception):
     pass
 
 class Object:
-    def __init__(self, category) -> None:
+    def __init__(self, category: 'Category') -> None:
         self.category = category
         self.identity = Morphism(domain=self, codomain=self)
+        category.morphisms.add(self.identity)
         self.morphismsTo = {self: {self.identity}}
         self.morphismsFrom = {self: {self.identity}}
 
@@ -30,24 +31,38 @@ class Morphism:
         self.category = domain.category
         self.domain = domain
         self.codomain = codomain
+    
+    @classmethod
+    def construct(cls, domain: Object, codomain: Object) -> Morphism:
+        newMorphism = Morphism(domain, codomain)
+        if domain not in codomain.morphismsFrom:
+            codomain.morphismsFrom[domain] = 
+        
+        return newMorphism
 
 class Category:
     def __init__(self, name: str) -> None:
         self.name = name
-        self.objects = []
-        self.morphisms = []
+        self.objects = set()
+        self.morphisms = set()
     
     def __repr__(self) -> str:
         return self.name
     
     def _newObject(self) -> Object:
-        pass
+        newObject = Object(category=self)
+        self.objects.add(newObject)
+        return newObject
 
     def _newMorphism(self, domain: Object, codomain: Object) -> Morphism:
-        pass
+        newMorphism = Morphism(domain, codomain)
+        self.morphisms.add(newMorphism)
 
     def anyObject(self) -> Object:
-        pass
+        return self._newObject()
+
+    def anyMorphism(self, domain: Object, codomain: Object) -> Morphism:
+        return self._newMorphism(domain, codomain)
 
 class NamedObject(Object):
     def __init__(self, category: Category, name: str) -> None:
