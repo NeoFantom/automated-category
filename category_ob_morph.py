@@ -1,5 +1,6 @@
 from typing import Any
 import itertools
+from collections import defaultdict
 
 from category_ob_morph import Morphism, Object
 
@@ -19,13 +20,13 @@ class MorphismCategoryError(Exception):
 class Object:
     def __init__(self, category: 'Category') -> None:
         self.category = category
-        self.identity = Morphism(domain=self, codomain=self)
-        category.morphisms.add(self.identity)
-        self.morphismsTo = {self: {self.identity}}
-        self.morphismsFrom = {self: {self.identity}}
+        self.morphismsTo = defaultdict(set)
+        self.morphismsFrom = defaultdict(set)
+        self.identity = Morphism.construct(domain=self, codomain=self)
 
 class Morphism:
     def __init__(self, domain: Object, codomain: Object) -> None:
+        """Should not be called. Use factory `Morphism.construct()` instead."""
         if domain.category != codomain.category:
             raise MorphismCategoryError('domain and codomain must be objects within the same category')
         self.category = domain.category
@@ -34,10 +35,11 @@ class Morphism:
     
     @classmethod
     def construct(cls, domain: Object, codomain: Object) -> Morphism:
-        newMorphism = Morphism(domain, codomain)
-        if domain not in codomain.morphismsFrom:
-            codomain.morphismsFrom[domain] = 
-        
+        x, y = domain, codomain
+        newMorphism = Morphism(x, y)
+        x.morphismsTo[y].add(newMorphism)
+        y.morphismsFrom[x].add(newMorphism)
+        # newMorphism.category.morphisms.add(newMorphism)
         return newMorphism
 
 class Category:
@@ -55,18 +57,21 @@ class Category:
         return newObject
 
     def _newMorphism(self, domain: Object, codomain: Object) -> Morphism:
-        newMorphism = Morphism(domain, codomain)
+        newMorphism = Morphism.construct(domain, codomain)
         self.morphisms.add(newMorphism)
+        return newMorphism
 
-    def anyObject(self) -> Object:
+    def someObject(self) -> Object:
         return self._newObject()
 
-    def anyMorphism(self, domain: Object, codomain: Object) -> Morphism:
+    def someMorphism(self, domain: Object, codomain: Object) -> Morphism:
         return self._newMorphism(domain, codomain)
 
 class NamedObject(Object):
-    def __init__(self, category: Category, name: str) -> None:
-        super().__init__(category)
+    def __init__(self, name: str, category: Category = None) -> None:
+        """Omit category only when Object.__init__(category) has been called"""
+        if category is not None:
+            super().__init__(category)
         self.name = name
         self.identity.__class__ = NamedMorphism
         self.identity.name = f'{category.name}_morId{self.name}'
@@ -76,11 +81,17 @@ class NamedObject(Object):
 
 class NamedMorphism(Morphism):
     def __init__(self, domain: Object, codomain: Object, name: str) -> None:
+        """`NamedMorphism()` should not be called. Use factory method `NamedMorphism.construct()`."""
         super().__init__(domain, codomain)
         self.name = name
 
     def __repr__(self) -> str:
         return self.name
+    
+    @classmethod
+    def construct(cls, domain: Object, codomain: Object, name: str) -> Morphism:
+        newMorphism = super().construct(domain, codomain, name=name)
+        return newMorphism
 
 class SerialNamedCategory(Category):
     def __init__(self, name: str) -> None:
@@ -99,7 +110,8 @@ class SerialNamedCategory(Category):
     def _newObject(self) -> NamedObject:
         newObject = super()._newObject()
         newObject.__class__ = NamedObject
-        newObject.name = f'{newObject.category.name}{self._nextObjectId}'
+        name = f'{newObject.category.name}{self._nextObjectId}'
+        NamedObject.__init__(newObject, name)
         return newObject
     
     def _newMorphism(self, domain: NamedObject, codomain: NamedObject) -> NamedMorphism:

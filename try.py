@@ -1,3 +1,6 @@
+from collections import defaultdict
+
+
 class Parent:
     @classmethod
     def f(cls):
@@ -19,5 +22,6 @@ class Child(Parent):
     def bark(self):
         print('walf walf')
 
-d = {1:2, 2:3}
-print(3 in d)
+d = defaultdict(int, {1:2, 2:3})
+print(d['hello'])
+print(dict(d))
