@@ -14,6 +14,18 @@ class MorphismCategoryError(Exception):
     pass
 
 class Object:
+    """
+    Object {
+        category: Category
+        morphismsTo: map{codomain -> set(Morphisms)}
+        morphismsFrom: map{domain -> set(Morphisms)}
+        identity: Morphism
+    }
+    Tracked in following:
+        some_morphism.domain: Object
+        some_morphism.codomain: Object
+        category.objects: set(Object)
+    """
     def __init__(self, category: 'Category') -> None:
         self.category = category
         self.morphismsTo = defaultdict(set)
@@ -22,6 +34,17 @@ class Object:
 
 
 class Morphism:
+    """
+    Morphism {
+        category: Category
+        domain: Object
+        codomain: Object
+    }
+    Tracked in following set(Morphisms):
+        domain.morphismsTo[codomain]
+        codomain.morphismsFrom[domain]
+        category.morphisms
+    """
     def __init__(self, domain: Object, codomain: Object) -> None:
         """Should not be called. Use factory `Morphism.construct()` instead."""
         if domain.category != codomain.category:
@@ -40,6 +63,13 @@ class Morphism:
 
 
 class Category:
+    """
+    Category {
+        name: str
+        objects: set{Object}
+        morphisms: set{Morphism}
+    }
+    """
     def __init__(self, name: str) -> None:
         self.name = name
         self.objects = set()
