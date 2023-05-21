@@ -8,9 +8,6 @@ class NamedObject(BaseObject):
             super().__init__(category)
         self.name = name
     
-    def __repr__(self) -> str:
-        return self.name
-    
     @property
     def name(self):
         return self._name
@@ -21,15 +18,15 @@ class NamedObject(BaseObject):
         self.identity.__class__ = NamedMorphism
         self.identity.name = f'{self.category.name}_morId{self.name}'
     
+    def __repr__(self) -> str:
+        return self.name
+    
 class NamedMorphism(BaseMorphism):
     def __init__(self, name: str, domain: BaseObject = None, codomain: BaseObject = None) -> None:
         """`NamedMorphism()` should not be called. Use factory method `NamedMorphism.construct()`."""
         if domain and codomain:
             super().__init__(domain, codomain)
         self.name = name
-
-    def __repr__(self) -> str:
-        return self.name
     
     @property
     def name(self):
@@ -39,6 +36,9 @@ class NamedMorphism(BaseMorphism):
     def name(self, name):
         print('NamedMorphism.name.setter() is called')
         self._name = name
+
+    def __repr__(self) -> str:
+        return self.name
     
     @classmethod
     def construct(cls, domain: BaseObject, codomain: BaseObject, name: str) -> BaseMorphism:
