@@ -55,6 +55,7 @@ class Morphism:
         self.category = domain.category
         self.domain = domain
         self.codomain = codomain
+        self.decompositions = set_of_tuples_of_morphisms
     
     @classmethod
     def construct(cls, domain: Object, codomain: Object) -> 'Morphism':
@@ -89,6 +90,7 @@ class Category:
         self.name = name if name else object.__repr__(self)
         self.objects = set()
         self.morphisms = set()
+        self.composeRules = dict_mapping_tupe_of_morphisms_to_morphism
     
     def __repr__(self) -> str:
         return self.name
