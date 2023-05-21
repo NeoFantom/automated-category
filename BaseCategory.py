@@ -13,7 +13,7 @@ Progress:
 class MorphismCategoryError(Exception):
     pass
 
-class Object:
+class BaseObject:
     """
     Object {
         category: Category
@@ -26,14 +26,14 @@ class Object:
         some_morphism.codomain: Object
         category.objects: set(Object)
     """
-    def __init__(self, category: 'Category') -> None:
+    def __init__(self, category: 'BaseCategory') -> None:
         self.category = category
         self.morphismsTo = defaultdict(set)
         self.morphismsFrom = defaultdict(set)
-        self.identity = Morphism.construct(domain=self, codomain=self)
+        self.identity = BaseMorphism.construct(domain=self, codomain=self)
 
 
-class Morphism:
+class BaseMorphism:
     """
     Morphism {
         category: Category
@@ -45,7 +45,7 @@ class Morphism:
         codomain.morphismsFrom[domain]
         category.morphisms
     """
-    def __init__(self, domain: Object, codomain: Object) -> None:
+    def __init__(self, domain: BaseObject, codomain: BaseObject) -> None:
         """Should not be called. Use factory `Morphism.construct()` instead."""
         if domain.category != codomain.category:
             raise MorphismCategoryError('domain and codomain must be objects within the same category')
@@ -54,15 +54,24 @@ class Morphism:
         self.codomain = codomain
     
     @classmethod
-    def construct(cls, domain: Object, codomain: Object) -> 'Morphism':
+    def construct(cls, domain: BaseObject, codomain: BaseObject) -> 'BaseMorphism':
         X, Y = domain, codomain
-        newMorphism = Morphism(X, Y)
+        newMorphism = BaseMorphism(X, Y)
         X.morphismsTo[Y].add(newMorphism)
         Y.morphismsFrom[X].add(newMorphism)
         return newMorphism
+    
+    def makeEqualTo(self, another: BaseObject):
+        pass
+
+    def composeWith(self, another: BaseObject) -> BaseObject:
+        pass
+
+    def __matmul__(self, another):
+        return self.composeWith(another)
 
 
-class Category:
+class BaseCategory:
     """
     Category {
         name: str
@@ -78,26 +87,26 @@ class Category:
     def __repr__(self) -> str:
         return self.name
     
-    def _newObject(self) -> Object:
-        newObject = Object(category=self)
+    def _newObject(self) -> BaseObject:
+        newObject = BaseObject(category=self)
         self.objects.add(newObject)
         self.morphisms.add(newObject.identity)
         return newObject
 
-    def _newMorphism(self, domain: Object, codomain: Object) -> Morphism:
-        newMorphism = Morphism.construct(domain, codomain)
+    def _newMorphism(self, domain: BaseObject, codomain: BaseObject) -> BaseMorphism:
+        newMorphism = BaseMorphism.construct(domain, codomain)
         self.morphisms.add(newMorphism)
         return newMorphism
 
-    def someObject(self) -> Object:
+    def someObject(self) -> BaseObject:
         return self._newObject()
 
-    def someMorphism(self, domain: Object, codomain: Object) -> Morphism:
+    def someMorphism(self, domain: BaseObject, codomain: BaseObject) -> BaseMorphism:
         return self._newMorphism(domain, codomain)
 
 
 if __name__ == '__main__':
-    A = Category('A')
+    A = BaseCategory('A')
     A0 = A.someObject()
     A1 = A.someObject()
     id0 = A0.identity
@@ -129,4 +138,5 @@ if __name__ == '__main__':
         {newline.join([str((m, m.domain, m.codomain, newline)) for m in A0.morphismsFrom[A1]])}
         A0.morphismsFrom[A0] == A0.morphismsTo[A0]: {A0.morphismsFrom[A0] == A0.morphismsTo[A0]}
         A0.morphismsTo[A1] == A1.morphismsFrom[A0]: {A0.morphismsTo[A1] == A1.morphismsFrom[A0]}
+        {f0 @ f1}
     """)
